@@ -42,11 +42,13 @@ object MojoFormatter {
 
   def format(path: String,
              log: Log,
+             alignArguments: Boolean,
              alignParameters: Boolean,
              alignSingleLineCaseStatements: Boolean,
              alignSingleLineCaseStatements_maxArrowIndent: Int,
              compactControlReadability: Boolean,
              compactStringConcatenation: Boolean,
+             danglingCloseParenthesis: String,
              doubleIndentClassDeclaration: Boolean,
              formatXml: Boolean,
              indentLocalDefs: Boolean,
@@ -61,14 +63,25 @@ object MojoFormatter {
              spaceBeforeColon: Boolean,
              spaceInsideBrackets: Boolean,
              spaceInsideParentheses: Boolean,
+             spacesAroundMultiImports: Boolean,
              spacesWithinPatternBinders: Boolean) {
 
+    def intent(value: String, pref: PreferenceDescriptor[Intent]): Intent =
+      IntentPreference.parseValue(value).fold(
+        l => {
+          log.warn(s"Could not parse ${pref.key}: $value")
+          pref.defaultValue
+        },
+        r => r)
+
     val preferences = FormattingPreferences()
+      .setPreference(AlignArguments, alignArguments)
       .setPreference(AlignParameters, alignParameters)
       .setPreference(AlignSingleLineCaseStatements, alignSingleLineCaseStatements)
       .setPreference(AlignSingleLineCaseStatements.MaxArrowIndent, alignSingleLineCaseStatements_maxArrowIndent)
       .setPreference(CompactControlReadability, compactControlReadability)
       .setPreference(CompactStringConcatenation, compactStringConcatenation)
+      .setPreference(DanglingCloseParenthesis, intent(danglingCloseParenthesis, DanglingCloseParenthesis))
       .setPreference(DoubleIndentClassDeclaration, doubleIndentClassDeclaration)
       .setPreference(FormatXml, formatXml)
       .setPreference(IndentLocalDefs, indentLocalDefs)
@@ -83,6 +96,7 @@ object MojoFormatter {
       .setPreference(SpaceBeforeColon, spaceBeforeColon)
       .setPreference(SpaceInsideParentheses, spaceInsideParentheses)
       .setPreference(SpaceInsideBrackets, spaceInsideBrackets)
+      .setPreference(SpacesAroundMultiImports, spacesAroundMultiImports)
       .setPreference(SpacesWithinPatternBinders, spacesWithinPatternBinders)
 
     val files = findScalaFiles(path)
